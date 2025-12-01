@@ -1,5 +1,6 @@
 
 import React from 'react';
+import TeamBadge from './TeamBadge';
 
 const StandingsTable = ({ conference, teams, onTeamSelect, selectedTeamId, selectedTeamAbbreviation, headToHeadResults }) => {
     return (
@@ -27,7 +28,7 @@ const StandingsTable = ({ conference, teams, onTeamSelect, selectedTeamId, selec
                                     <td className="team-cell">
                                         <span className="rank">{index + 1}</span>
                                         <div className="team-info">
-                                            {team.logo && <img src={team.logo} alt={team.abbreviation} className="team-logo" />}
+                                            <TeamBadge abbreviation={team.abbreviation} name={team.name} size="md" />
                                             <span className="team-name">{team.name}</span>
                                             <span className="team-record">{team.record}</span>
                                         </div>

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import SEO from '../components/SEO';
+import TeamBadge from '../components/TeamBadge';
 
 function ScheduleDifficulty({ standings, schedules, loading }) {
     const [gameCount, setGameCount] = useState(5);
@@ -139,7 +140,7 @@ function ScheduleDifficulty({ standings, schedules, loading }) {
                                     <td>{index + 1}</td>
                                     <td>
                                         <div className="team-info">
-                                            <img src={data.team.logo} alt={data.team.name} className="team-logo-small" />
+                                            <TeamBadge abbreviation={data.team.abbreviation} name={data.team.name} size="md" />
                                             {data.team.name}
                                         </div>
                                     </td>
@@ -147,7 +148,7 @@ function ScheduleDifficulty({ standings, schedules, loading }) {
                                         <div className="opponents-list">
                                             {data.opponentDetails.map((opp, idx) => (
                                                 <div key={`${opp.id}-${idx}`} className="opponent-item">
-                                                    <img src={opp.logo} alt={opp.abbreviation} className="opponent-logo" />
+                                                    <TeamBadge abbreviation={opp.abbreviation} name={opp.abbreviation} size="md" />
                                                     <span className="opponent-record">{opp.record}</span>
                                                 </div>
                                             ))}

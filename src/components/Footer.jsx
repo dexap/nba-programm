@@ -1,44 +1,50 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import './Footer.css';
 
 function Footer() {
+    const [showAds, setShowAds] = useState(false);
+    const adsenseClientId = import.meta.env.VITE_ADSENSE_CLIENT_ID;
+    const adsenseAdSlot = import.meta.env.VITE_ADSENSE_AD_SLOT;
+
     useEffect(() => {
-        // Load AdSense script if not already loaded
-        if (!window.adsbygoogle) {
+        // Only load AdSense if both client ID and ad slot are configured
+        if (adsenseClientId && adsenseAdSlot && !window.adsbygoogle) {
             const script = document.createElement('script');
             script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
             script.async = true;
             script.crossOrigin = 'anonymous';
-            // TODO: Replace with your actual AdSense client ID
-            script.setAttribute('data-ad-client', 'ca-pub-2753663026729082');
+            script.setAttribute('data-ad-client', adsenseClientId);
             document.head.appendChild(script);
-        }
 
-        // Push ad after script loads
-        try {
-            if (window.adsbygoogle) {
-                (window.adsbygoogle = window.adsbygoogle || []).push({});
-            }
-        } catch (e) {
-            console.error('AdSense error:', e);
+            script.onload = () => {
+                setShowAds(true);
+                // Push ad after script loads
+                try {
+                    (window.adsbygoogle = window.adsbygoogle || []).push({});
+                } catch (e) {
+                    console.error('AdSense error:', e);
+                }
+            };
         }
-    }, []);
+    }, [adsenseClientId, adsenseAdSlot]);
 
     return (
         <footer className="app-footer">
-            {/* AdSense Banner */}
-            <div className="adsense-container">
-                <div className="ad-label">Advertisement</div>
-                <ins
-                    className="adsbygoogle"
-                    style={{ display: 'block' }}
-                    data-ad-client="ca-pub-2753663026729082"
-                    data-ad-slot="YYYYYYYYYY"
-                    data-ad-format="horizontal"
-                    data-full-width-responsive="true"
-                ></ins>
-            </div>
+            {/* AdSense Banner - Only show if configured */}
+            {showAds && adsenseClientId && adsenseAdSlot && (
+                <div className="adsense-container">
+                    <div className="ad-label">Advertisement</div>
+                    <ins
+                        className="adsbygoogle"
+                        style={{ display: 'block' }}
+                        data-ad-client={adsenseClientId}
+                        data-ad-slot={adsenseAdSlot}
+                        data-ad-format="horizontal"
+                        data-full-width-responsive="true"
+                    ></ins>
+                </div>
+            )}
 
             {/* Credits */}
             <div className="footer-credits">

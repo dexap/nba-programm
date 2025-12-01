@@ -29,21 +29,12 @@ const BADGE_ABBREVIATION_MAP = {
     'SAC': 'SAC', // Sacramento Kings
     'TOR': 'TOR', // Toronto Raptors
     'UTA': 'UTA', // Utah Jazz
-    'WAS': 'WAS', // Washington Wizards
-
-    // Teams that might use 2 letters in API
-    'GS': 'GSW',   // Golden State Warriors
-    'GSW': 'GSW',  // Golden State Warriors
-    'NO': 'NOP',   // New Orleans Pelicans
-    'NOP': 'NOP',  // New Orleans Pelicans
-    'NY': 'NYK',   // New York Knicks
-    'NYK': 'NYK',  // New York Knicks
-    'SA': 'SAS',   // San Antonio Spurs
-    'SAS': 'SAS',  // San Antonio Spurs
-    'UTAH': 'UTA', // Utah Jazz
-    'UTA': 'UTA', // Utah Jazz
     'WSH': 'WAS', // Washington Wizards
-    'WAS': 'WAS', // Washington Wizards
+    'GS': 'GSW',   // Golden State Warriors
+    'NO': 'NOP',   // New Orleans Pelicans
+    'NY': 'NYK',   // New York Knicks
+    'SA': 'SAS',   // San Antonio Spurs
+    'UTAH': 'UTA', // Utah Jazz
 };
 
 const getBadgeAbbreviation = (abbreviation) => {

@@ -67,6 +67,8 @@ const CookieConsent = () => {
                             We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic.
                             By clicking "Accept All", you consent to our use of cookies.
                             Our "Database" feature uses local storage to cache data for performance, which is classified as necessary.
+                            {' '}
+                            <a href="/privacy" style={{ color: '#60a5fa', textDecoration: 'underline' }}>Learn more in our Privacy Policy</a>.
                         </p>
                     </div>
                     <div className="cookie-actions">

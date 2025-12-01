@@ -1,33 +1,94 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import ScheduleDifficulty from './pages/ScheduleDifficulty';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import Terms from './pages/Terms';
 import CookieConsent from './components/CookieConsent';
+import Footer from './components/Footer';
+import PageHeader from './components/PageHeader';
+import { fetchStandings, fetchTeamSchedule } from './services/api';
+import { saveToDatabase, getFromDatabase, isDataStale } from './services/storage';
 import './index.css';
 
-function Navigation() {
-  const location = useLocation();
-  return (
-    <nav className="main-nav">
-      <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>Standings</Link>
-      <Link to="/difficulty" className={`nav-link ${location.pathname === '/difficulty' ? 'active' : ''}`}>Schedule Difficulty</Link>
-    </nav>
-  );
-}
-
 function App() {
+  const [standings, setStandings] = useState({ eastern: [], western: [] });
+  const [schedules, setSchedules] = useState([]); // Array of { teamId, schedule }
+  const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchDataFromApi = async () => {
+    setIsRefreshing(true);
+    try {
+      // 1. Fetch Standings
+      const standingsData = await fetchStandings();
+      if (!standingsData) throw new Error("Failed to fetch standings");
+
+      const allTeams = [...standingsData.eastern, ...standingsData.western];
+
+      // 2. Fetch Schedules for ALL teams
+      const promises = allTeams.map(async (team) => {
+        const schedule = await fetchTeamSchedule(team.espnId);
+        return { teamId: team.id, schedule };
+      });
+
+      const schedulesData = await Promise.all(promises);
+
+      // 3. Save to DB
+      saveToDatabase(standingsData, schedulesData);
+
+      // 4. Update State
+      setStandings(standingsData);
+      setSchedules(schedulesData);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    } finally {
+      setIsRefreshing(false);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const init = async () => {
+      setLoading(true);
+
+      // Check DB first
+      const dbData = getFromDatabase();
+      const stale = isDataStale();
+
+      if (dbData && !stale) {
+        console.log("Loading from Database (Cache Hit)");
+        setStandings(dbData.standings);
+        setSchedules(dbData.schedules);
+        setLastUpdated(new Date(dbData.lastUpdated));
+        setLoading(false);
+      } else {
+        console.log("Cache miss or stale, fetching from API...");
+        await fetchDataFromApi();
+      }
+    };
+
+    init();
+  }, []);
+
+  const handleManualRefresh = () => {
+    fetchDataFromApi();
+  };
+
   return (
     <Router>
       <div className="app-container">
-        <Navigation />
+        <PageHeader onRefresh={handleManualRefresh} isRefreshing={isRefreshing} />
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/difficulty" element={<ScheduleDifficulty />} />
+          <Route path="/" element={<Home standings={standings} schedules={schedules} loading={loading} />} />
+          <Route path="/difficulty" element={<ScheduleDifficulty standings={standings} schedules={schedules} loading={loading} />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<Terms />} />
         </Routes>
         <CookieConsent />
-        <footer className="app-footer">
-          <p>Data provided by NBA.com & ESPN (Unofficial). Built for NBA fans.</p>
-        </footer>
+        <Footer />
       </div>
     </Router>
   );

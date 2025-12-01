@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nba-h2h.web.app/sitemap.xml

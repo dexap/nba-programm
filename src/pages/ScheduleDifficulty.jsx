@@ -1,26 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import PageHeader from '../components/PageHeader';
+import React, { useState, useMemo } from 'react';
 import SEO from '../components/SEO';
-import { fetchStandings, fetchTeamSchedule } from '../services/api';
-import { saveToDatabase, getFromDatabase, isDataStale } from '../services/storage';
 
-function ScheduleDifficulty() {
+function ScheduleDifficulty({ standings, schedules, loading }) {
     const [gameCount, setGameCount] = useState(5);
     const [mode, setMode] = useState('future'); // 'future' or 'past'
-    const [difficultyData, setDifficultyData] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [lastUpdated, setLastUpdated] = useState(null);
-    const [isRefreshing, setIsRefreshing] = useState(false);
 
-    const processData = (standingsData, schedulesData) => {
-        const allTeams = [...standingsData.eastern, ...standingsData.western];
+    const difficultyData = useMemo(() => {
+        if (!standings.eastern.length || !schedules.length) return [];
+
+        const allTeams = [...standings.eastern, ...standings.western];
         const teamMap = {};
         allTeams.forEach(team => {
             teamMap[team.id] = team;
         });
 
-        // Process Data
-        const processed = schedulesData.map(({ teamId, schedule }) => {
+        // Convert schedules array to map if needed, or just iterate if schedules is array of {teamId, schedule}
+        // The props 'schedules' is an array of {teamId, schedule}
+
+        const processed = schedules.map(({ teamId, schedule }) => {
             const team = teamMap[teamId];
             if (!team) return null;
 
@@ -76,66 +73,7 @@ function ScheduleDifficulty() {
 
         processed.sort((a, b) => b.opponentWinPct - a.opponentWinPct);
         return processed;
-    };
-
-    const fetchDataFromApi = async () => {
-        setIsRefreshing(true);
-        try {
-            // 1. Fetch Standings
-            const standingsData = await fetchStandings();
-            if (!standingsData) throw new Error("Failed to fetch standings");
-
-            const allTeams = [...standingsData.eastern, ...standingsData.western];
-
-            // 2. Fetch Schedules
-            const promises = allTeams.map(async (team) => {
-                const schedule = await fetchTeamSchedule(team.espnId);
-                return { teamId: team.id, schedule };
-            });
-
-            const schedulesData = await Promise.all(promises);
-
-            // 3. Save to DB
-            saveToDatabase(standingsData, schedulesData);
-
-            // 4. Update State
-            const processed = processData(standingsData, schedulesData);
-            setDifficultyData(processed);
-            setLastUpdated(new Date());
-        } catch (error) {
-            console.error("Error refreshing data:", error);
-        } finally {
-            setIsRefreshing(false);
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        const init = async () => {
-            setLoading(true);
-
-            // Check DB first
-            const dbData = getFromDatabase();
-            const stale = isDataStale();
-
-            if (dbData && !stale) {
-                console.log("Loading from Database (Cache Hit)");
-                const processed = processData(dbData.standings, dbData.schedules);
-                setDifficultyData(processed);
-                setLastUpdated(new Date(dbData.lastUpdated));
-                setLoading(false);
-            } else {
-                console.log("Cache miss or stale, fetching from API...");
-                await fetchDataFromApi();
-            }
-        };
-
-        init();
-    }, [gameCount, mode]);
-
-    const handleManualRefresh = () => {
-        fetchDataFromApi();
-    };
+    }, [standings, schedules, mode, gameCount]);
 
     return (
         <div className="difficulty-container">
@@ -144,17 +82,10 @@ function ScheduleDifficulty() {
                 description="Analyze NBA schedule difficulty. See which teams have the toughest upcoming games or who survived the hardest past schedule."
                 keywords="NBA schedule difficulty, strength of schedule, upcoming opponents, NBA analysis"
             />
-            <PageHeader
-                title="Schedule Difficulty"
-                subtitle={mode === 'future'
-                    ? 'See which teams have the toughest upcoming schedule'
-                    : 'See which teams have played the toughest schedule recently'}
-                lastUpdated={lastUpdated}
-                onRefresh={handleManualRefresh}
-                isRefreshing={isRefreshing}
-            />
 
-            <div className="controls-container">
+            {/* PageHeader is now in App.jsx */}
+
+            <div className="controls-container" style={{ marginTop: '2rem' }}>
                 <div className="filter-group">
                     <span className="filter-label"></span>
                     <div className="button-group">

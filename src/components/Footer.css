@@ -1,0 +1,119 @@
+.app-footer {
+    margin-top: 5rem;
+    padding: 2rem 0 1.5rem;
+    border-top: 1px solid var(--border-color);
+    background: linear-gradient(to bottom,
+            transparent,
+            rgba(15, 23, 42, 0.5));
+}
+
+/* AdSense Container */
+.adsense-container {
+    max-width: 1200px;
+    margin: 0 auto 2.5rem;
+    padding: 1.5rem;
+    background: rgba(30, 41, 59, 0.4);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(8px);
+    position: relative;
+    overflow: hidden;
+}
+
+.adsense-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(59, 130, 246, 0.5),
+            transparent);
+}
+
+.ad-label {
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+    opacity: 0.6;
+    font-weight: 600;
+}
+
+/* AdSense Responsive Container */
+.adsbygoogle {
+    min-height: 90px;
+    max-height: 250px;
+    background: rgba(15, 23, 42, 0.3);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Placeholder for when ads are loading/blocked */
+.adsbygoogle:empty::after {
+    content: 'Advertisement Space';
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    opacity: 0.4;
+    font-style: italic;
+}
+
+/* Footer Credits */
+.footer-credits {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    opacity: 0.8;
+    padding: 0 1rem;
+}
+
+.footer-credits p {
+    margin: 0.5rem 0;
+    line-height: 1.6;
+}
+
+.footer-copyright {
+    font-size: 0.8rem;
+    opacity: 0.6;
+    margin-top: 0.75rem !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .app-footer {
+        margin-top: 3rem;
+        padding: 1.5rem 0 1rem;
+    }
+
+    .adsense-container {
+        margin-bottom: 2rem;
+        padding: 1rem;
+    }
+
+    .footer-credits {
+        font-size: 0.8rem;
+    }
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.app-footer {
+    animation: fadeIn 0.6s ease-out;
+}

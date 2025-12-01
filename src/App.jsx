@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import Home from './pages/Home';
 import ScheduleDifficulty from './pages/ScheduleDifficulty';
+import CookieConsent from './components/CookieConsent';
 import './index.css';
 
 function Navigation() {
@@ -23,6 +24,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/difficulty" element={<ScheduleDifficulty />} />
         </Routes>
+        <CookieConsent />
         <footer className="app-footer">
           <p>Data provided by NBA.com & ESPN (Unofficial). Built for NBA fans.</p>
         </footer>

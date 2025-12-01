@@ -1,142 +1,182 @@
 import React, { useState, useEffect } from 'react';
+import PageHeader from '../components/PageHeader';
+import SEO from '../components/SEO';
 import { fetchStandings, fetchTeamSchedule } from '../services/api';
+import { saveToDatabase, getFromDatabase, isDataStale } from '../services/storage';
 
 function ScheduleDifficulty() {
     const [gameCount, setGameCount] = useState(5);
     const [mode, setMode] = useState('future'); // 'future' or 'past'
     const [difficultyData, setDifficultyData] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [standings, setStandings] = useState(null);
+    const [lastUpdated, setLastUpdated] = useState(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
-    useEffect(() => {
-        const loadData = async () => {
-            setLoading(true);
+    const processData = (standingsData, schedulesData) => {
+        const allTeams = [...standingsData.eastern, ...standingsData.western];
+        const teamMap = {};
+        allTeams.forEach(team => {
+            teamMap[team.id] = team;
+        });
 
-            // 1. Fetch Standings to get team records and IDs
-            const standingsData = await fetchStandings();
-            if (!standingsData) {
-                setLoading(false);
-                return;
+        // Process Data
+        const processed = schedulesData.map(({ teamId, schedule }) => {
+            const team = teamMap[teamId];
+            if (!team) return null;
+
+            let relevantGames = [];
+
+            if (mode === 'future') {
+                relevantGames = schedule.filter(game => {
+                    const competition = game.competitions?.[0];
+                    return competition && !competition.status.type.completed;
+                }).sort((a, b) => new Date(a.date) - new Date(b.date));
+            } else {
+                relevantGames = schedule.filter(game => {
+                    const competition = game.competitions?.[0];
+                    return competition && competition.status.type.completed;
+                }).sort((a, b) => new Date(b.date) - new Date(a.date));
             }
 
-            const allTeams = [...standingsData.eastern, ...standingsData.western];
-            // Create a map for quick lookup of team stats by ID
-            const teamMap = {};
-            allTeams.forEach(team => {
-                teamMap[team.id] = team;
-            });
-            setStandings(teamMap);
+            const gamesToAnalyze = relevantGames.slice(0, gameCount);
 
-            // 2. Fetch Schedules for ALL teams
+            let opponentWins = 0;
+            let opponentLosses = 0;
+            const opponentDetails = [];
+
+            gamesToAnalyze.forEach(game => {
+                const competition = game.competitions[0];
+                const opponent = competition.competitors.find(c => c.team.id !== team.espnId)?.team;
+
+                if (opponent && teamMap[opponent.id]) {
+                    const oppStats = teamMap[opponent.id];
+                    opponentWins += oppStats.wins;
+                    opponentLosses += oppStats.losses;
+                    opponentDetails.push({
+                        id: oppStats.id,
+                        logo: oppStats.logo,
+                        abbreviation: oppStats.abbreviation,
+                        record: `${oppStats.wins}-${oppStats.losses}`
+                    });
+                }
+            });
+
+            const totalOpponentGames = opponentWins + opponentLosses;
+            const opponentWinPct = totalOpponentGames > 0 ? (opponentWins / totalOpponentGames) : 0;
+
+            return {
+                team,
+                opponentWins,
+                opponentLosses,
+                opponentWinPct,
+                opponentDetails,
+                gamesCount: gamesToAnalyze.length
+            };
+        }).filter(Boolean);
+
+        processed.sort((a, b) => b.opponentWinPct - a.opponentWinPct);
+        return processed;
+    };
+
+    const fetchDataFromApi = async () => {
+        setIsRefreshing(true);
+        try {
+            // 1. Fetch Standings
+            const standingsData = await fetchStandings();
+            if (!standingsData) throw new Error("Failed to fetch standings");
+
+            const allTeams = [...standingsData.eastern, ...standingsData.western];
+
+            // 2. Fetch Schedules
             const promises = allTeams.map(async (team) => {
                 const schedule = await fetchTeamSchedule(team.espnId);
                 return { teamId: team.id, schedule };
             });
 
-            const schedules = await Promise.all(promises);
+            const schedulesData = await Promise.all(promises);
 
-            // 3. Process Data
-            const processedData = schedules.map(({ teamId, schedule }) => {
-                const team = teamMap[teamId];
+            // 3. Save to DB
+            saveToDatabase(standingsData, schedulesData);
 
-                let relevantGames = [];
-
-                if (mode === 'future') {
-                    // Filter for future games: Not completed, sort by date ASC
-                    relevantGames = schedule.filter(game => {
-                        const competition = game.competitions?.[0];
-                        return competition && !competition.status.type.completed;
-                    }).sort((a, b) => new Date(a.date) - new Date(b.date));
-                } else {
-                    // Filter for past games: Completed, sort by date DESC (most recent first)
-                    relevantGames = schedule.filter(game => {
-                        const competition = game.competitions?.[0];
-                        return competition && competition.status.type.completed;
-                    }).sort((a, b) => new Date(b.date) - new Date(a.date));
-                }
-
-                // Take next/last N games
-                const gamesToAnalyze = relevantGames.slice(0, gameCount);
-
-                // Calculate opponent stats
-                let opponentWins = 0;
-                let opponentLosses = 0;
-                const opponentDetails = [];
-
-                gamesToAnalyze.forEach(game => {
-                    const competition = game.competitions[0];
-                    const opponent = competition.competitors.find(c => c.team.id !== team.espnId)?.team;
-
-                    if (opponent && teamMap[opponent.id]) {
-                        const oppStats = teamMap[opponent.id];
-                        opponentWins += oppStats.wins;
-                        opponentLosses += oppStats.losses;
-                        opponentDetails.push({
-                            id: oppStats.id,
-                            logo: oppStats.logo,
-                            abbreviation: oppStats.abbreviation,
-                            record: `${oppStats.wins}-${oppStats.losses}`
-                        });
-                    }
-                });
-
-                const totalOpponentGames = opponentWins + opponentLosses;
-                const opponentWinPct = totalOpponentGames > 0 ? (opponentWins / totalOpponentGames) : 0;
-
-                return {
-                    team,
-                    opponentWins,
-                    opponentLosses,
-                    opponentWinPct,
-                    opponentDetails,
-                    gamesCount: gamesToAnalyze.length
-                };
-            });
-
-            // Sort by difficulty (Opponent Win Pct Descending)
-            processedData.sort((a, b) => b.opponentWinPct - a.opponentWinPct);
-
-            setDifficultyData(processedData);
+            // 4. Update State
+            const processed = processData(standingsData, schedulesData);
+            setDifficultyData(processed);
+            setLastUpdated(new Date());
+        } catch (error) {
+            console.error("Error refreshing data:", error);
+        } finally {
+            setIsRefreshing(false);
             setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const init = async () => {
+            setLoading(true);
+
+            // Check DB first
+            const dbData = getFromDatabase();
+            const stale = isDataStale();
+
+            if (dbData && !stale) {
+                console.log("Loading from Database (Cache Hit)");
+                const processed = processData(dbData.standings, dbData.schedules);
+                setDifficultyData(processed);
+                setLastUpdated(new Date(dbData.lastUpdated));
+                setLoading(false);
+            } else {
+                console.log("Cache miss or stale, fetching from API...");
+                await fetchDataFromApi();
+            }
         };
 
-        loadData();
+        init();
     }, [gameCount, mode]);
+
+    const handleManualRefresh = () => {
+        fetchDataFromApi();
+    };
 
     return (
         <div className="difficulty-container">
-            <header className="page-header">
-                <h1>Schedule Difficulty Analyzer</h1>
-                <p className="subtitle">
-                    {mode === 'future'
-                        ? 'See which teams have the toughest upcoming schedule'
-                        : 'See which teams have played the toughest schedule recently'}
-                </p>
-            </header>
+            <SEO
+                title="Schedule Difficulty"
+                description="Analyze NBA schedule difficulty. See which teams have the toughest upcoming games or who survived the hardest past schedule."
+                keywords="NBA schedule difficulty, strength of schedule, upcoming opponents, NBA analysis"
+            />
+            <PageHeader
+                title="Schedule Difficulty"
+                subtitle={mode === 'future'
+                    ? 'See which teams have the toughest upcoming schedule'
+                    : 'See which teams have played the toughest schedule recently'}
+                lastUpdated={lastUpdated}
+                onRefresh={handleManualRefresh}
+                isRefreshing={isRefreshing}
+            />
 
             <div className="controls-container">
                 <div className="filter-group">
-                    <span className="filter-label">Mode:</span>
+                    <span className="filter-label"></span>
                     <div className="button-group">
                         <button
                             className={`filter-btn ${mode === 'future' ? 'active' : ''}`}
                             onClick={() => setMode('future')}
                         >
-                            Upcoming
+                            Upcoming Games
                         </button>
                         <button
                             className={`filter-btn ${mode === 'past' ? 'active' : ''}`}
                             onClick={() => setMode('past')}
                         >
-                            Past Results
+                            Past Games
                         </button>
                     </div>
                 </div>
 
                 <div className="filter-group">
-                    <span className="filter-label">Games to Analyze:</span>
+                    <span className="filter-label"></span>
                     <div className="button-group">
-                        {[3, 5, 10, 15].map(count => (
+                        {[3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(count => (
                             <button
                                 key={count}
                                 className={`filter-btn ${gameCount === count ? 'active' : ''}`}
@@ -150,7 +190,7 @@ function ScheduleDifficulty() {
             </div>
 
             {loading ? (
-                <div className="loading">Analyzing Schedules...</div>
+                <div className="loading">Loading Data...</div>
             ) : (
                 <div className="difficulty-table-wrapper">
                     <table className="difficulty-table">
@@ -158,7 +198,7 @@ function ScheduleDifficulty() {
                             <tr>
                                 <th>Rank</th>
                                 <th>Team</th>
-                                <th>{mode === 'future' ? 'Upcoming' : 'Past'} Opponents</th>
+                                <th style={{ paddingLeft: '2.5rem' }}>{mode === 'future' ? 'Upcoming' : 'Past'} Opponents</th>
                                 <th>Difficulty Score</th>
                             </tr>
                         </thead>

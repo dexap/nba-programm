@@ -1,26 +1,88 @@
 import React, { useState, useEffect } from 'react';
 import StandingsTable from '../components/StandingsTable';
+import PageHeader from '../components/PageHeader';
+import SEO from '../components/SEO';
 import { fetchStandings, fetchTeamSchedule, getHeadToHead } from '../services/api';
+import { saveToDatabase, getFromDatabase, isDataStale } from '../services/storage';
 
 function Home() {
     const [standings, setStandings] = useState({ eastern: [], western: [] });
+    const [allSchedules, setAllSchedules] = useState({}); // Map of teamId -> schedule
     const [loading, setLoading] = useState(true);
     const [selectedTeam, setSelectedTeam] = useState(null);
     const [headToHeadData, setHeadToHeadData] = useState({});
+    const [lastUpdated, setLastUpdated] = useState(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
+    const processData = (standingsData, schedulesData) => {
+        setStandings(standingsData);
+
+        // Convert schedules array to a map for easier access
+        const schedulesMap = {};
+        schedulesData.forEach(item => {
+            schedulesMap[item.teamId] = item.schedule;
+        });
+        setAllSchedules(schedulesMap);
+    };
+
+    const fetchDataFromApi = async () => {
+        setIsRefreshing(true);
+        try {
+            // 1. Fetch Standings
+            const standingsData = await fetchStandings();
+            if (!standingsData) throw new Error("Failed to fetch standings");
+
+            const allTeams = [...standingsData.eastern, ...standingsData.western];
+
+            // 2. Fetch Schedules for ALL teams (to populate DB)
+            const promises = allTeams.map(async (team) => {
+                const schedule = await fetchTeamSchedule(team.espnId);
+                return { teamId: team.id, schedule };
+            });
+
+            const schedulesData = await Promise.all(promises);
+
+            // 3. Save to DB
+            saveToDatabase(standingsData, schedulesData);
+
+            // 4. Update State
+            processData(standingsData, schedulesData);
+            setLastUpdated(new Date());
+        } catch (error) {
+            console.error("Error refreshing data:", error);
+        } finally {
+            setIsRefreshing(false);
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const loadStandings = async () => {
+        const init = async () => {
             setLoading(true);
-            const data = await fetchStandings();
-            if (data) {
-                setStandings(data);
+
+            // Check DB first
+            const dbData = getFromDatabase();
+            const stale = isDataStale();
+
+            if (dbData && !stale) {
+                console.log("Loading from Database (Cache Hit)");
+                processData(dbData.standings, dbData.schedules);
+                setLastUpdated(new Date(dbData.lastUpdated));
+                setLoading(false);
+            } else {
+                console.log("Cache miss or stale, fetching from API...");
+                await fetchDataFromApi();
             }
-            setLoading(false);
         };
-        loadStandings();
+
+        init();
     }, []);
 
-    const handleTeamSelect = async (team) => {
+    const handleManualRefresh = () => {
+        fetchDataFromApi();
+    };
+
+    const handleTeamSelect = (team) => {
         // If clicking the already selected team, deselect it
         if (selectedTeam && selectedTeam.id === team.id) {
             setSelectedTeam(null);
@@ -30,14 +92,14 @@ function Home() {
 
         setSelectedTeam(team);
 
-        // Fetch schedule for the selected team using its ESPN ID
-        if (!team.espnId) {
-            console.warn("No ESPN ID found for team:", team.name);
+        // Get schedule from our local state (which came from DB or bulk fetch)
+        const schedule = allSchedules[team.id];
+
+        if (!schedule) {
+            console.warn("No schedule found for team:", team.name);
             setHeadToHeadData({});
             return;
         }
-
-        const schedule = await fetchTeamSchedule(team.espnId);
 
         // Calculate head-to-head for every other team
         const allTeams = [...standings.eastern, ...standings.western];
@@ -55,13 +117,21 @@ function Home() {
 
     return (
         <div className="home-container">
-            <header className="page-header">
-                <h1>NBA H2H Standings</h1>
-                <p className="subtitle">Select a team to see head-to-head results</p>
-            </header>
+            <SEO
+                title="H2H Standings"
+                description="View current NBA standings and check head-to-head records between any two teams instantly."
+                keywords="NBA standings, head to head, NBA records, basketball stats"
+            />
+            <PageHeader
+                title="H2H Standings"
+                subtitle="Select a team to see head-to-head results"
+                lastUpdated={lastUpdated}
+                onRefresh={handleManualRefresh}
+                isRefreshing={isRefreshing}
+            />
 
             {loading ? (
-                <div className="loading">Loading Standings...</div>
+                <div className="loading">Loading Data ...</div>
             ) : (
                 <div className="standings-grid">
                     <StandingsTable

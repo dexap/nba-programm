@@ -1,5 +1,5 @@
 
-const ESPN_STANDINGS_URL = 'http://site.api.espn.com/apis/v2/sports/basketball/nba/standings';
+const ESPN_STANDINGS_URL = 'https://site.api.espn.com/apis/v2/sports/basketball/nba/standings';
 const ESPN_BASE_URL = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba';
 
 export const fetchStandings = async () => {

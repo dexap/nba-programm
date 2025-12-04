@@ -2,6 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import SEO from '../components/SEO';
 import TeamBadge from '../components/TeamBadge';
 import AdSenseBanner from '../components/AdSenseBanner';
+import ContentSection from '../components/ContentSection';
+import FeatureGrid from '../components/FeatureGrid';
 
 function ScheduleDifficulty({ standings, schedules, loading }) {
     const [gameCount, setGameCount] = useState(5);
@@ -94,7 +96,7 @@ function ScheduleDifficulty({ standings, schedules, loading }) {
             <SEO
                 title="Schedule Difficulty"
                 description="Analyze NBA schedule difficulty. See which teams have the toughest upcoming games or who survived the hardest past schedule."
-                keywords="NBA schedule difficulty, strength of schedule, upcoming opponents, NBA analysis"
+                keywords="NBA schedule difficulty, strength of schedule, upcoming opponents, past opponents, NBA analysis"
             />
 
             {/* PageHeader is now in App.jsx */}
@@ -121,7 +123,7 @@ function ScheduleDifficulty({ standings, schedules, loading }) {
                 <div className="filter-group">
                     <span className="filter-label"></span>
                     <div className="button-group">
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20].map(count => (
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 82].map(count => (
                             <button
                                 key={count}
                                 className={`filter-btn ${gameCount === count ? 'active' : ''}`}
@@ -144,7 +146,7 @@ function ScheduleDifficulty({ standings, schedules, loading }) {
                             <thead>
                                 <tr>
                                     <th style={{ paddingLeft: '1.5rem' }}>Team</th>
-                                    <th style={{ paddingLeft: '2.5rem' }}>{mode === 'future' ? 'Upcoming' : 'Past'} Opponents</th>
+                                    <th style={{ paddingLeft: '2.5rem' }}>{mode === 'future' ? 'Upcoming' : 'Past'} Opponents →</th>
                                     <th>Difficulty Score</th>
                                 </tr>
                             </thead>
@@ -192,9 +194,46 @@ function ScheduleDifficulty({ standings, schedules, loading }) {
                     )}
                 </div>
             )}
+
+            {/* Content Section */}
+            {!loading && (
+                <ContentSection title="Understanding Schedule Difficulty">
+                    <FeatureGrid>
+                        <FeatureGrid.Card
+                            icon=""
+                            title="How it Works"
+                            description="We calculate the combined win percentage of a team's upcoming opponents. A higher percentage signifies a tougher schedule."
+                        />
+                        <FeatureGrid.Card
+                            icon=""
+                            title="Playoff Race"
+                            description="Teams with easier schedules may climb standings faster."
+                        />
+                        <FeatureGrid.Card
+                            icon=""
+                            title="Betting & Fantasy"
+                            description="Predict performance dips or surges based on opponent strength."
+                        />
+                        <FeatureGrid.Card
+                            icon=""
+                            title="Strategic Analysis"
+                            description="Understand which teams are tested by tough competition."
+                        />
+                        <FeatureGrid.Card
+                            icon=""
+                            title="Rest & Rotation"
+                            description="Teams facing tough stretches may rest key players."
+                        />
+                        <FeatureGrid.Card
+                            icon=""
+                            title="Using the Filters"
+                            description="You can use the filters to view schedule difficulty for time periods in the past or future."
+                        />
+                    </FeatureGrid>
+                </ContentSection>
+            )}
         </div>
     );
 }
 
 export default ScheduleDifficulty;
-

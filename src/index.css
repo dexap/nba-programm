@@ -29,6 +29,13 @@ body {
   padding: 2rem;
 }
 
+.content-container {
+  max-width: 1200px;
+  margin: 2rem auto 0;
+  padding: 0 2rem;
+}
+
+
 /* Sticky Header Styles */
 .sticky-header {
   position: sticky;

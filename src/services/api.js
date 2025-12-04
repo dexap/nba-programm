@@ -36,7 +36,10 @@ export const fetchStandings = async () => {
                     winPercent: getStat('winPercent'),
                     gamesBehind: getStatDisplay('gamesBehind'), // Display value handles "-" for leader
                     record: getStatDisplay('overall'), // e.g. "10-5"
-                    streak: getStatDisplay('streak')
+                    streak: getStatDisplay('streak'),
+                    differential: getStat('differential'),
+                    homeRecord: getStatDisplay('Home'),
+                    awayRecord: getStatDisplay('Road')
                 });
             });
         });

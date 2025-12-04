@@ -21,6 +21,9 @@ function PageHeader({ onRefresh, isRefreshing }) {
                     <Link to="/difficulty" className={`nav-link ${location.pathname === '/difficulty' ? 'active' : ''}`}>
                         Schedule Difficulty
                     </Link>
+                    <Link to="/next-game" className={`nav-link ${location.pathname === '/next-game' ? 'active' : ''}`}>
+                        Next Game
+                    </Link>
                 </nav>
 
                 {/* Right: Refresh Button (only show if onRefresh is provided) */}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
+import NextGame from './pages/NextGame';
 import ScheduleDifficulty from './pages/ScheduleDifficulty';
 import About from './pages/About';
 import FAQ from './pages/FAQ';
@@ -87,6 +88,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home standings={standings} schedules={schedules} loading={loading} />} />
           <Route path="/difficulty" element={<ScheduleDifficulty standings={standings} schedules={schedules} loading={loading} />} />
+          <Route path="/next-game" element={<NextGame standings={standings} schedules={schedules} loading={loading} />} />
           <Route path="/about" element={<About />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/glossary" element={<Glossary />} />

@@ -5,12 +5,11 @@ import TeamBadge from './TeamBadge';
 const StandingsTable = ({ conference, teams, onTeamSelect, selectedTeamId, selectedTeamAbbreviation, headToHeadResults }) => {
     return (
         <div className="standings-table-container">
-            <h2 className="conference-title">{conference} Conference</h2>
-            <div className="table-wrapper">
-                <table className="standings-table">
+            <div className="difficulty-table-wrapper">
+                <table className="difficulty-table">
                     <thead>
                         <tr>
-                            <th className="th-team">Team</th>
+                            <th className="th-team" style={{ paddingLeft: '1.5rem' }}>{conference} Conference</th>
                             <th className="th-h2h">Head-to-Head</th>
                         </tr>
                     </thead>
@@ -29,7 +28,7 @@ const StandingsTable = ({ conference, teams, onTeamSelect, selectedTeamId, selec
                                         <span className="rank">{index + 1}</span>
                                         <div className="team-info">
                                             <TeamBadge abbreviation={team.abbreviation} name={team.name} size="md" />
-                                            <span className="team-name">{team.name}</span>
+                                            <span className="team-name">{team.name.split(' ').pop()}</span>
                                             <span className="team-record">{team.record}</span>
                                         </div>
                                     </td>

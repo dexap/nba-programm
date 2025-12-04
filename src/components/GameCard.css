@@ -53,6 +53,29 @@
     color: var(--text-secondary);
 }
 
+.team-last5 {
+    display: flex;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+}
+
+.last5-result {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.3rem;
+    border-radius: 3px;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.last5-result.win {
+    color: #4ade80;
+}
+
+.last5-result.loss {
+    color: #f87171;
+}
+
+
 .vs-badge {
     font-size: 0.9rem;
     font-weight: 700;
@@ -60,6 +83,7 @@
     background-color: rgba(255, 255, 255, 0.05);
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
+    margin-bottom: 8rem;
 }
 
 .score-section {

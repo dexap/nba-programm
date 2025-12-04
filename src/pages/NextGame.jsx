@@ -66,8 +66,32 @@ function NextGame({ standings, schedules, loading }) {
         return wins;
     };
 
+    // Get Last 5 Games as String (e.g., "W-L-W-W-L")
+    const getLast5GamesString = (schedule, teamId) => {
+        if (!schedule) return '';
+        const completedGames = schedule.filter(g =>
+            g.competitions?.[0]?.status?.type?.completed
+        ).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const last5 = completedGames.slice(0, 5);
+        const results = last5.map(game => {
+            const competition = game.competitions[0];
+            const competitor = competition.competitors.find(c => c.team.id === teamId);
+            return competitor && competitor.winner ? 'W' : 'L';
+        }).reverse(); // Reverse the array to show oldest to newest
+
+        return results.join('-');
+    };
+
     const analysisData = useMemo(() => {
-        if (loading || !standings.eastern.length || !schedules.length) return [];
+        // Wait until we have both standings and schedules data
+        if (loading) return [];
+        if (!standings.eastern.length || !standings.western.length) return [];
+        if (!schedules.length) return [];
+
+        // Additional check: ensure schedules actually have data
+        const hasScheduleData = schedules.some(s => s.schedule && s.schedule.length > 0);
+        if (!hasScheduleData) return [];
 
         const allTeams = [...standings.eastern, ...standings.western];
         const teamMap = {};
@@ -129,10 +153,22 @@ function NextGame({ standings, schedules, loading }) {
             // Weights: Mom=0.3, Net=0.4, HA=0.3
             const totalScore = (0.3 * fMom) + (0.4 * fNet) + (0.3 * fHA);
 
+            // Get Last 5 Games String for both teams
+            const homeLast5 = getLast5GamesString(scheduleMap[homeTeam.id], homeTeam.id);
+            const awayLast5 = getLast5GamesString(scheduleMap[awayTeam.id], awayTeam.id);
+
             upcomingGames.push({
                 game: nextGame,
-                homeTeam,
-                awayTeam,
+                homeTeam: {
+                    ...homeTeam,
+                    last5Games: homeLast5,
+                    netRating: diffHome
+                },
+                awayTeam: {
+                    ...awayTeam,
+                    last5Games: awayLast5,
+                    netRating: diffAway
+                },
                 scoreData: {
                     totalScore,
                     momentumFactor: fMom,
@@ -160,7 +196,7 @@ function NextGame({ standings, schedules, loading }) {
                     Momentum (Last 5), Net Rating (Season Strength), and Home/Away Performance.
                 </p>
 
-                {loading ? (
+                {loading || analysisData.length === 0 ? (
                     <div className="loading">Loading Analysis...</div>
                 ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>

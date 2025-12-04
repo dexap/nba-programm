@@ -20,12 +20,23 @@ function GameCard({ game, homeTeam, awayTeam, scoreData }) {
         if (Math.abs(val) < 0.05) return 'var(--text-secondary)';
         // If val > 0 (Home Adv), use Home Color. If val < 0 (Away Adv), use Away Color.
         const team = val > 0 ? homeTeam : awayTeam;
-        return getTeamColors(team.abbreviation).alternative;
+        return getTeamColors(BADGE_ABBREVIATION_MAP[team.abbreviation]).alternative;
     };
 
+    const formatScore = (val) => {
+        return Math.abs(val).toFixed(2);
+    };
+
+    // Format factor with arrow
     const formatFactor = (val) => {
-        const prefix = val > 0 ? '+' : '';
-        return `${prefix}${val.toFixed(2)}`;
+        const arrow = val < 0 ? '← ' : ' →';
+        const text = Math.abs(val).toFixed(2);
+
+        if (Math.abs(val) < 0.05) {
+            return text;
+        }
+
+        return val < 0 ? `${arrow}${text}` : `${text}${arrow}`;
     };
 
     return (
@@ -40,19 +51,54 @@ function GameCard({ game, homeTeam, awayTeam, scoreData }) {
                 <div className="team-block">
                     <TeamBadge abbreviation={awayTeam.abbreviation} name={awayTeam.name} size="lg" />
                     <span className="team-name">{awayTeam.name.split(' ').pop()}</span>
+                    {awayTeam.last5Games && (
+                        <div className="team-last5">
+                            {awayTeam.last5Games.split('-').map((result, idx) => (
+                                <span
+                                    key={idx}
+                                    className={`last5-result ${result === 'W' ? 'win' : 'loss'}`}
+                                >
+                                    {result}
+                                </span>
+                            ))}
+
+                        </div>
+                    )}
                     <span className="team-record">Road: {awayTeam.awayRecord}</span>
+                    {awayTeam.netRating !== undefined && (
+                        <span className="team-record">
+                            Net: {awayTeam.netRating > 0 ? '+' : ''}{awayTeam.netRating.toFixed(1)}
+                        </span>
+                    )}
                 </div>
-                <div>@</div>
+                <div className="vs-badge">@</div>
                 <div className="team-block">
                     <TeamBadge abbreviation={homeTeam.abbreviation} name={homeTeam.name} size="lg" />
                     <span className="team-name">{homeTeam.name.split(' ').pop()}</span>
+                    {homeTeam.last5Games && (
+                        <div className="team-last5">
+                            {homeTeam.last5Games.split('-').map((result, idx) => (
+                                <span
+                                    key={idx}
+                                    className={`last5-result ${result === 'W' ? 'win' : 'loss'}`}
+                                >
+                                    {result}
+                                </span>
+                            ))}
+                        </div>
+                    )}
                     <span className="team-record">Home: {homeTeam.homeRecord}</span>
+                    {homeTeam.netRating !== undefined && (
+                        <span className="team-record">
+                            Net: {homeTeam.netRating > 0 ? '+' : ''}{homeTeam.netRating.toFixed(1)}
+                        </span>
+                    )}
                 </div>
             </div>
 
             <div className="score-section">
                 <div className="score-value" style={{ color: primaryColor }}>
-                    {totalScore.toFixed(2)}
+                    {formatScore(totalScore)}
                 </div>
                 <div className="advantage-text" style={{ color: primaryColor }}>
                     {isNeutral ? 'Neutral Matchup' : `${advantageTeam.name} Advantage`}

@@ -1,10 +1,23 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import SEO from '../components/SEO';
 import TeamBadge from '../components/TeamBadge';
+import AdSenseBanner from '../components/AdSenseBanner';
 
 function ScheduleDifficulty({ standings, schedules, loading }) {
     const [gameCount, setGameCount] = useState(5);
     const [mode, setMode] = useState('future'); // 'future' or 'past'
+    const [showVerticalAd, setShowVerticalAd] = useState(false);
+
+    // Check screen width for vertical ad display
+    useEffect(() => {
+        const checkWidth = () => {
+            setShowVerticalAd(window.innerWidth >= 1750);
+        };
+
+        checkWidth();
+        window.addEventListener('resize', checkWidth);
+        return () => window.removeEventListener('resize', checkWidth);
+    }, []);
 
     const difficultyData = useMemo(() => {
         if (!standings.eastern.length || !schedules.length) return [];
@@ -108,7 +121,7 @@ function ScheduleDifficulty({ standings, schedules, loading }) {
                 <div className="filter-group">
                     <span className="filter-label"></span>
                     <div className="button-group">
-                        {[3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(count => (
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20].map(count => (
                             <button
                                 key={count}
                                 className={`filter-btn ${gameCount === count ? 'active' : ''}`}
@@ -124,46 +137,59 @@ function ScheduleDifficulty({ standings, schedules, loading }) {
             {loading ? (
                 <div className="loading">Loading Data...</div>
             ) : (
-                <div className="difficulty-table-wrapper">
-                    <table className="difficulty-table">
-                        <thead>
-                            <tr>
-                                <th>Rank</th>
-                                <th>Team</th>
-                                <th style={{ paddingLeft: '2.5rem' }}>{mode === 'future' ? 'Upcoming' : 'Past'} Opponents</th>
-                                <th>Difficulty Score</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {difficultyData.map((data, index) => (
-                                <tr key={data.team.id}>
-                                    <td>{index + 1}</td>
-                                    <td>
-                                        <div className="team-info">
-                                            <TeamBadge abbreviation={data.team.abbreviation} name={data.team.name} size="md" />
-                                            {data.team.name}
-                                        </div>
-                                    </td>
-                                    <td className="opponents-cell">
-                                        <div className="opponents-list">
-                                            {data.opponentDetails.map((opp, idx) => (
-                                                <div key={`${opp.id}-${idx}`} className="opponent-item">
-                                                    <TeamBadge abbreviation={opp.abbreviation} name={opp.abbreviation} size="md" />
-                                                    <span className="opponent-record">{opp.record}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </td>
-                                    <td className="difficulty-score-cell">
-                                        <div className={`difficulty-box ${data.opponentWinPct > 0.55 ? 'hard' : data.opponentWinPct < 0.45 ? 'easy' : 'medium'}`}>
-                                            <span className="difficulty-percent">{(data.opponentWinPct * 100).toFixed(1)}%</span>
-                                            <span className="difficulty-record">{data.opponentWins}-{data.opponentLosses}</span>
-                                        </div>
-                                    </td>
+                <div style={{ position: 'relative', maxWidth: '1400px', margin: '0 auto' }}>
+                    {/* Main Table - Centered */}
+                    <div className="difficulty-table-wrapper">
+                        <table className="difficulty-table">
+                            <thead>
+                                <tr>
+                                    <th style={{ paddingLeft: '1.5rem' }}>Team</th>
+                                    <th style={{ paddingLeft: '2.5rem' }}>{mode === 'future' ? 'Upcoming' : 'Past'} Opponents</th>
+                                    <th>Difficulty Score</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {difficultyData.map((data, index) => (
+                                    <tr key={data.team.id}>
+                                        <td>
+                                            <div className="team-info">
+                                                <TeamBadge abbreviation={data.team.abbreviation} name={data.team.name} size="md" />
+                                                {data.team.name}
+                                            </div>
+                                        </td>
+                                        <td className="opponents-cell">
+                                            <div className="opponents-list">
+                                                {data.opponentDetails.map((opp, idx) => (
+                                                    <div key={`${opp.id}-${idx}`} className="opponent-item">
+                                                        <TeamBadge abbreviation={opp.abbreviation} name={opp.abbreviation} size="md" />
+                                                        <span className="opponent-record">{opp.record}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </td>
+                                        <td className="difficulty-score-cell">
+                                            <div className={`difficulty-box ${data.opponentWinPct > 0.55 ? 'hard' : data.opponentWinPct < 0.45 ? 'easy' : 'medium'}`}>
+                                                <span className="difficulty-percent">{(data.opponentWinPct * 100).toFixed(1)}%</span>
+                                                <span className="difficulty-record">{data.opponentWins}-{data.opponentLosses}</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Vertical AdSense Banner - Positioned on the right */}
+                    {showVerticalAd && (
+                        <div style={{
+                            position: 'absolute',
+                            top: '0',
+                            right: '-320px',
+                            width: '300px'
+                        }}>
+                            <AdSenseBanner format="vertical" />
+                        </div>
+                    )}
                 </div>
             )}
         </div>
@@ -171,3 +197,4 @@ function ScheduleDifficulty({ standings, schedules, loading }) {
 }
 
 export default ScheduleDifficulty;
+

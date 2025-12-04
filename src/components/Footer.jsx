@@ -49,7 +49,11 @@ function Footer() {
             {/* Credits */}
             <div className="footer-credits">
                 <p>Data provided by NBA.com & ESPN (Unofficial). Built for NBA fans.</p>
-                <div className="footer-links" style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', margin: '1rem 0', fontSize: '0.85rem' }}>
+                <div className="footer-links" style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', margin: '1rem 0', fontSize: '0.85rem', flexWrap: 'wrap' }}>
+                    <Link to="/about" style={{ color: 'inherit', textDecoration: 'none', opacity: 0.8 }}>About</Link>
+                    <Link to="/faq" style={{ color: 'inherit', textDecoration: 'none', opacity: 0.8 }}>FAQ</Link>
+                    <Link to="/glossary" style={{ color: 'inherit', textDecoration: 'none', opacity: 0.8 }}>Glossary</Link>
+                    <span style={{ opacity: 0.5 }}>|</span>
                     <Link to="/privacy" style={{ color: 'inherit', textDecoration: 'none', opacity: 0.8 }}>Privacy Policy</Link>
                     <Link to="/terms" style={{ color: 'inherit', textDecoration: 'none', opacity: 0.8 }}>Terms of Service</Link>
                 </div>

@@ -4,7 +4,7 @@ import SEO from '../components/SEO';
 
 function PrivacyPolicy() {
     return (
-        <div className="container mx-auto px-4 pb-12" style={{ maxWidth: '900px', marginTop: '2rem' }}>
+        <div style={{ maxWidth: '900px', margin: '2rem auto', padding: '0 2rem' }}>
             <SEO
                 title="Privacy Policy - NBA H2H"
                 description="Privacy Policy for Head to Head NBA - Learn how we protect your data"

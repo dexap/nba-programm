@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import ScheduleDifficulty from './pages/ScheduleDifficulty';
+import About from './pages/About';
+import FAQ from './pages/FAQ';
+import Glossary from './pages/Glossary';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
 import CookieConsent from './components/CookieConsent';
@@ -84,6 +87,9 @@ function App() {
         <Routes>
           <Route path="/" element={<Home standings={standings} schedules={schedules} loading={loading} />} />
           <Route path="/difficulty" element={<ScheduleDifficulty standings={standings} schedules={schedules} loading={loading} />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/glossary" element={<Glossary />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<Terms />} />
         </Routes>

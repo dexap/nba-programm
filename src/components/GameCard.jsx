@@ -1,5 +1,6 @@
 import React from 'react';
-import TeamBadge from './TeamBadge';
+import TeamBadge, { BADGE_ABBREVIATION_MAP } from './TeamBadge';
+import { getTeamColors } from '../utils/teamColors';
 import './GameCard.css';
 
 function GameCard({ game, homeTeam, awayTeam, scoreData }) {
@@ -10,16 +11,16 @@ function GameCard({ game, homeTeam, awayTeam, scoreData }) {
     const advantageValue = Math.abs(totalScore);
     const isNeutral = advantageValue < 0.05;
 
-    // Color logic
-    // Score is -1 to 1. 
-    // We want to visualize where it falls.
-    // Let's map -1 to 0% (Full Away), 0 to 50% (Neutral), 1 to 100% (Full Home)
-    const barPercentage = ((totalScore + 1) / 2) * 100;
+    // Get colors
+    const advantageColors = getTeamColors(BADGE_ABBREVIATION_MAP[advantageTeam.abbreviation]);
+    const primaryColor = isNeutral ? 'var(--text-secondary)' : advantageColors.alternative;
 
+    // Color logic for factors
     const getFactorColor = (val) => {
-        if (val > 0.05) return '#10b981'; // Green (Home Adv)
-        if (val < -0.05) return '#ef4444'; // Red (Away Adv)
-        return 'var(--text-secondary)';
+        if (Math.abs(val) < 0.05) return 'var(--text-secondary)';
+        // If val > 0 (Home Adv), use Home Color. If val < 0 (Away Adv), use Away Color.
+        const team = val > 0 ? homeTeam : awayTeam;
+        return getTeamColors(team.abbreviation).alternative;
     };
 
     const formatFactor = (val) => {
@@ -31,43 +32,49 @@ function GameCard({ game, homeTeam, awayTeam, scoreData }) {
         <div className="game-card">
             <div className="game-header">
                 <span className="game-date">{new Date(game.date).toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
-                <span className="vs-badge">VS</span>
             </div>
 
             <div className="game-teams">
-                <div className="team-block">
-                    <TeamBadge abbreviation={homeTeam.abbreviation} name={homeTeam.name} size="lg" />
-                    <span className="team-name">{homeTeam.abbreviation}</span>
-                    <span className="team-record">Home: {homeTeam.homeRecord}</span>
-                </div>
+
 
                 <div className="team-block">
                     <TeamBadge abbreviation={awayTeam.abbreviation} name={awayTeam.name} size="lg" />
-                    <span className="team-name">{awayTeam.abbreviation}</span>
+                    <span className="team-name">{awayTeam.name.split(' ').pop()}</span>
                     <span className="team-record">Road: {awayTeam.awayRecord}</span>
+                </div>
+                <div>@</div>
+                <div className="team-block">
+                    <TeamBadge abbreviation={homeTeam.abbreviation} name={homeTeam.name} size="lg" />
+                    <span className="team-name">{homeTeam.name.split(' ').pop()}</span>
+                    <span className="team-record">Home: {homeTeam.homeRecord}</span>
                 </div>
             </div>
 
             <div className="score-section">
-                <div className="score-label">Dynamic H2H Score</div>
-                <div className="score-value" style={{ color: isNeutral ? 'var(--text-primary)' : (totalScore > 0 ? '#10b981' : '#ef4444') }}>
-                    {totalScore > 0 ? '+' : ''}{totalScore.toFixed(2)}
+                <div className="score-value" style={{ color: primaryColor }}>
+                    {totalScore.toFixed(2)}
                 </div>
-                <div className="advantage-text" style={{ color: isNeutral ? 'var(--text-secondary)' : (totalScore > 0 ? '#10b981' : '#ef4444') }}>
-                    {isNeutral ? 'Neutral Matchup' : `${advantageTeam.abbreviation} Advantage`}
+                <div className="advantage-text" style={{ color: primaryColor }}>
+                    {isNeutral ? 'Neutral Matchup' : `${advantageTeam.name} Advantage`}
                 </div>
 
                 <div className="score-bar-container">
                     {/* Center Marker */}
-                    <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '2px', backgroundColor: 'rgba(255,255,255,0.3)', transform: 'translateX(-50%)', zIndex: 1 }}></div>
+                    <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '2px', backgroundColor: 'rgba(255,255,255,0.1)', transform: 'translateX(-50%)', zIndex: 1 }}></div>
 
                     {/* Fill */}
+                    {/* 
+                        If Home (Left) has advantage (Score > 0): Bar grows from Center to Right.
+                        If Away (Right) has advantage (Score < 0): Bar grows from Center to Left.
+                    */}
                     <div
                         className="score-bar-fill"
                         style={{
-                            left: totalScore > 0 ? '50%' : `${barPercentage}%`,
+                            left: totalScore > 0 ? '50%' : 'auto',
+                            right: totalScore > 0 ? 'auto' : '50%',
                             width: `${Math.abs(totalScore) * 50}%`, // Scale: 1.0 score = 50% width from center
-                            backgroundColor: totalScore > 0 ? '#10b981' : '#ef4444'
+                            backgroundColor: primaryColor,
+                            borderRadius: totalScore > 0 ? '0 4px 4px 0' : '4px 0 0 4px'
                         }}
                     ></div>
                 </div>

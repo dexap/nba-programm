@@ -2,7 +2,7 @@ import React from 'react';
 import { getTeamColors } from '../utils/teamColors';
 
 // Complete mapping of all possible API abbreviations to standardized 3-letter codes
-const BADGE_ABBREVIATION_MAP = {
+export const BADGE_ABBREVIATION_MAP = {
     // Teams that already use 3 letters
     'ATL': 'ATL', // Atlanta Hawks
     'BOS': 'BOS', // Boston Celtics
@@ -28,7 +28,6 @@ const BADGE_ABBREVIATION_MAP = {
     'POR': 'POR', // Portland Trail Blazers
     'SAC': 'SAC', // Sacramento Kings
     'TOR': 'TOR', // Toronto Raptors
-    'UTA': 'UTA', // Utah Jazz
     'WSH': 'WAS', // Washington Wizards
     'GS': 'GSW',   // Golden State Warriors
     'NO': 'NOP',   // New Orleans Pelicans

@@ -1,9 +1,10 @@
 import React from 'react';
 import TeamBadge, { BADGE_ABBREVIATION_MAP } from './TeamBadge';
 import { getTeamColors } from '../utils/teamColors';
+import InjuryReport from './InjuryReport';
 import './GameCard.css';
 
-function GameCard({ game, homeTeam, awayTeam, scoreData }) {
+function GameCard({ game, homeTeam, awayTeam, scoreData, homeInjuries, awayInjuries }) {
     const { totalScore, momentumFactor, netRatingFactor, homeAwayFactor } = scoreData;
 
     // Determine advantage
@@ -146,6 +147,24 @@ function GameCard({ game, homeTeam, awayTeam, scoreData }) {
                     </span>
                 </div>
             </div>
+
+            {/* Injury Reports Section */}
+            {(awayInjuries?.length > 0 || homeInjuries?.length > 0) && (
+                <div className="injury-reports-section">
+                    {awayInjuries && awayInjuries.length > 0 && (
+                        <InjuryReport
+                            injuries={awayInjuries}
+                            teamName={awayTeam.name.split(' ').pop()}
+                        />
+                    )}
+                    {homeInjuries && homeInjuries.length > 0 && (
+                        <InjuryReport
+                            injuries={homeInjuries}
+                            teamName={homeTeam.name.split(' ').pop()}
+                        />
+                    )}
+                </div>
+            )}
         </div>
     );
 }

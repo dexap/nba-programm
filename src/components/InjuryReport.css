@@ -1,0 +1,104 @@
+.injury-report {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background-color: rgba(15, 23, 42, 0.3);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.injury-report-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin: 0 0 0.75rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.injury-table-container {
+    overflow-x: auto;
+}
+
+.injury-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+}
+
+.injury-table thead {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.injury-table th {
+    padding: 0.4rem 0.3rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.injury-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.injury-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.injury-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.injury-table td {
+    padding: 0.5rem 0.3rem;
+    color: var(--text-primary);
+}
+
+.injury-position {
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.injury-name {
+    font-weight: 500;
+    min-width: 120px;
+}
+
+.injury-status {
+    text-align: center;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    background-color: rgba(248, 113, 113, 0.2);
+    border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .injury-table {
+        font-size: 0.7rem;
+    }
+
+    .injury-table th,
+    .injury-table td {
+        padding: 0.4rem 0.2rem;
+    }
+
+    .injury-name {
+        min-width: 100px;
+    }
+}
+
+/* Make numbers monospace for better alignment */
+.injury-table td:nth-child(n+4) {
+    font-family: 'Courier New', monospace;
+    text-align: center;
+    font-size: 0.7rem;
+}

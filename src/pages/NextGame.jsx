@@ -1,9 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import GameCard from '../components/GameCard';
 import ContentSection from '../components/ContentSection';
 import SEO from '../components/SEO';
+import { getTeamInjuryReport } from '../services/injuries';
 
 function NextGame({ standings, schedules, loading }) {
+    const [injuriesData, setInjuriesData] = useState({});
 
     // Helper to parse record string "10-5" -> win pct
     const parseRecord = (recordStr) => {
@@ -82,6 +84,35 @@ function NextGame({ standings, schedules, loading }) {
 
         return results.join('-');
     };
+
+    // Fetch injuries for all teams
+    useEffect(() => {
+        const fetchAllInjuries = async () => {
+            if (loading || !standings.eastern.length || !standings.western.length) {
+                return;
+            }
+
+            const allTeams = [...standings.eastern, ...standings.western];
+            const injuriesMap = {};
+
+            // Fetch injuries for all teams in parallel
+            await Promise.all(
+                allTeams.map(async (team) => {
+                    try {
+                        const injuries = await getTeamInjuryReport(team.id);
+                        injuriesMap[team.id] = injuries;
+                    } catch (error) {
+                        console.error(`Failed to fetch injuries for team ${team.id}:`, error);
+                        injuriesMap[team.id] = [];
+                    }
+                })
+            );
+
+            setInjuriesData(injuriesMap);
+        };
+
+        fetchAllInjuries();
+    }, [standings, loading]);
 
     const analysisData = useMemo(() => {
         // Wait until we have both standings and schedules data
@@ -207,6 +238,8 @@ function NextGame({ standings, schedules, loading }) {
                                 homeTeam={data.homeTeam}
                                 awayTeam={data.awayTeam}
                                 scoreData={data.scoreData}
+                                homeInjuries={injuriesData[data.homeTeam.id] || []}
+                                awayInjuries={injuriesData[data.awayTeam.id] || []}
                             />
                         ))}
                     </div>

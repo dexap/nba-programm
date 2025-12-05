@@ -35,17 +35,18 @@ function InjuryReport({ injuries, teamName }) {
                                 <td className="injury-position">{injury.position}</td>
                                 <td className="injury-name">{injury.name}</td>
                                 <td className="injury-status">
-                                    <span className="status-badge" 
-                                    style={{ backgroundColor: INJURY_STATUS_MAP[injury.status.toLowerCase()] === 'OUT' ? '#9a1b1bff' : '#ffb70eff' ,
-                                        color: INJURY_STATUS_MAP[injury.status.toLowerCase()] === 'OUT' ? '#ffffff' : '#000000'
-                                    }}
+                                    <span className="status-badge"
+                                        style={{
+                                            backgroundColor: INJURY_STATUS_MAP[injury.status.toLowerCase()] === 'OUT' ? '#9a1b1bff' : '#ffb70eff',
+                                            color: INJURY_STATUS_MAP[injury.status.toLowerCase()] === 'OUT' ? '#ffffff' : '#000000'
+                                        }}
                                     >{INJURY_STATUS_MAP[injury.status.toLowerCase()]}</span>
                                 </td>
-                                <td>{injury.stats?.ppg?.toFixed(1) || '0.0'}</td>
-                                <td>{injury.stats?.reb?.toFixed(1) || '0.0'}</td>
-                                <td>{injury.stats?.ast?.toFixed(1) || '0.0'}</td>
-                                <td>{injury.stats?.stl?.toFixed(1) || '0.0'}</td>
-                                <td>{injury.stats?.blk?.toFixed(1) || '0.0'}</td>
+                                <td>{injury.stats?.ppg != null ? injury.stats.ppg.toFixed(1) : '-'}</td>
+                                <td>{injury.stats?.reb != null ? injury.stats.reb.toFixed(1) : '-'}</td>
+                                <td>{injury.stats?.ast != null ? injury.stats.ast.toFixed(1) : '-'}</td>
+                                <td>{injury.stats?.stl != null ? injury.stats.stl.toFixed(1) : '-'}</td>
+                                <td>{injury.stats?.blk != null ? injury.stats.blk.toFixed(1) : '-'}</td>
                             </tr>
                         ))}
                     </tbody>

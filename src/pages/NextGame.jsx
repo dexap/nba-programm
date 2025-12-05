@@ -15,38 +15,6 @@ function NextGame({ standings, schedules, loading }) {
         return w / (w + l);
     };
 
-    // Helper to calculate momentum score (last 5 games)
-    const calculateMomentumScore = (schedule) => {
-        if (!schedule || schedule.length === 0) return 0;
-
-        // Filter for completed games only
-        const completedGames = schedule.filter(g =>
-            g.competitions?.[0]?.status?.type?.completed
-        ).sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort desc (newest first)
-
-        const last5 = completedGames.slice(0, 5);
-
-        let score = 0;
-        last5.forEach(game => {
-            const competition = game.competitions[0];
-            const homeTeam = competition.competitors.find(c => c.homeAway === 'home');
-            const awayTeam = competition.competitors.find(c => c.homeAway === 'away');
-
-            // Determine if the team we are analyzing won
-            // We don't have the team ID here directly easily unless we pass it, 
-            // but we can check the winner.
-            // Wait, we need to know WHICH team's schedule this is.
-            // The schedule object from API doesn't explicitly say "This is Team X's schedule" in the event itself easily 
-            // without checking the team ID against the competitors.
-            // However, in our App.jsx, we mapped schedules by teamId.
-            // Let's assume we pass the teamId or check against it.
-
-            // Actually, simpler: The schedule array is for a specific team.
-            // We need to know if THAT team won.
-            // Let's pass the teamId to this helper.
-        });
-        return score;
-    };
 
     // Refined Momentum Helper
     const getLast5Wins = (schedule, teamId) => {
@@ -230,7 +198,7 @@ function NextGame({ standings, schedules, loading }) {
                 {loading || analysisData.length === 0 ? (
                     <div className="loading">Loading Analysis...</div>
                 ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: '2rem' }}>
                         {analysisData.map(data => (
                             <GameCard
                                 key={data.game.id}

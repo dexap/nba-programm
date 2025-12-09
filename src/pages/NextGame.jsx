@@ -175,6 +175,8 @@ function NextGame({ standings, schedules, loading }) {
                     homeAwayFactor: fHA
                 }
             });
+
+            console.log(upcomingGames);
         });
 
         // Sort by date

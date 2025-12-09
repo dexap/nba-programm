@@ -14,7 +14,7 @@ function InjuryReport({ injuries, teamName }) {
 
     return (
         <div className="injury-report">
-            <h4 className="injury-report-title">{teamName} - Verletzte Spieler</h4>
+            <h4 className="injury-report-title">{teamName} - Injurie Report</h4>
             <div className="injury-table-container">
                 <table className="injury-table">
                     <thead>

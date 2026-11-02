@@ -8,6 +8,7 @@ import FAQ from './pages/FAQ';
 import Glossary from './pages/Glossary';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
+import Injuries from './pages/Injuries';
 import CookieConsent from './components/CookieConsent';
 import Footer from './components/Footer';
 import PageHeader from './components/PageHeader';
@@ -82,13 +83,14 @@ function App() {
   };
 
   return (
-    <Router>
+    <Router basename={import.meta.env.BASE_URL.replace(/\/$/, '') || '/'}>
       <div className="app-container">
         <PageHeader onRefresh={handleManualRefresh} isRefreshing={isRefreshing} />
         <Routes>
           <Route path="/" element={<Home standings={standings} schedules={schedules} loading={loading} />} />
           <Route path="/difficulty" element={<ScheduleDifficulty standings={standings} schedules={schedules} loading={loading} />} />
           <Route path="/next-game" element={<NextGame standings={standings} schedules={schedules} loading={loading} />} />
+          <Route path="/injuries" element={<Injuries />} />
           <Route path="/about" element={<About />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/glossary" element={<Glossary />} />

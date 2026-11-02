@@ -35,3 +35,7 @@ firestore-debug.log*
 ui-debug.log*
 
 README.md
+
+# injury data is generated at build time (backend/build.py)
+public/data/
+__pycache__/

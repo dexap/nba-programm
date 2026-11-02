@@ -1,0 +1,88 @@
+name: Build & deploy
+
+# Runs entirely on the home server (self-hosted runner with label "homeserver",
+# see scripts/setup-homeserver-runner.sh): pulls injury data, builds the app and
+# publishes it on GitHub Pages (https://dexap.github.io/nba-programm/).
+on:
+  schedule:
+    - cron: "41 10 * * *" # daily ~11:41 CET / 12:41 CEST – after US games and morning injury updates
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: [self-hosted, homeserver]
+    timeout-minutes: 30
+    permissions:
+      contents: write # injury history is kept in the branch injury-data
+    env:
+      VITE_BASE: /nba-programm/
+      SITE_URL: https://dexap.github.io/nba-programm
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Backend tests
+        run: python3 -m unittest discover -s backend
+
+      # backend/build.py: fresh data from ESPN; history and last good state live in the branch
+      # injury-data (created on the first run from backend/seed). If fetching fails, the last
+      # good state is deployed.
+      - name: Update injury data
+        continue-on-error: true
+        run: |
+          DATA="$RUNNER_TEMP/injury-data"
+          git worktree prune
+          rm -rf "$DATA"
+          if git ls-remote --exit-code --heads origin injury-data >/dev/null; then
+            git fetch --depth=1 origin injury-data
+            git worktree add --detach "$DATA" FETCH_HEAD
+          else
+            [ $? -eq 2 ] || exit 1 # 2 = branch does not exist yet -> create it from the seed
+            git worktree add --detach "$DATA" HEAD
+            git -C "$DATA" checkout -q --orphan injury-data-init
+            git -C "$DATA" rm -rfq .
+            cp backend/seed/history.json backend/seed/injuries.json "$DATA/"
+          fi
+          python3 backend/build.py update --data-dir "$DATA"
+          cd "$DATA"
+          git add injuries.json history.json
+          git -c user.name="github-actions[bot]" -c user.email="41898708+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Injury data $(date -u +%F)" || exit 0
+          git push origin HEAD:injury-data
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+      - name: Add injury data and share page
+        run: |
+          DATA="$RUNNER_TEMP/injury-data"
+          if [ -f "$DATA/injuries.json" ]; then src="$DATA"; else src=backend/seed; fi
+          python3 backend/build.py site --data-dir "$src" --dist dist --site-url "$SITE_URL"
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: [self-hosted, homeserver]
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

@@ -9,7 +9,7 @@ function PageHeader({ onRefresh, isRefreshing }) {
             <div className="header-content">
                 {/* Left: Logo & Title */}
                 <Link to="/" className="header-brand">
-                    <img src="/h2h_logo.png" alt="NBA H2H Logo" className="header-logo" />
+                    <img src={`${import.meta.env.BASE_URL}h2h_logo.png`} alt="NBA H2H Logo" className="header-logo" />
                     <span className="header-title">NBA H2H</span>
                 </Link>
 
@@ -23,6 +23,9 @@ function PageHeader({ onRefresh, isRefreshing }) {
                     </Link>
                     <Link to="/next-game" className={`nav-link ${location.pathname === '/next-game' ? 'active' : ''}`}>
                         Next Game
+                    </Link>
+                    <Link to="/injuries" className={`nav-link ${location.pathname === '/injuries' ? 'active' : ''}`}>
+                        Injuries
                     </Link>
                 </nav>
 
